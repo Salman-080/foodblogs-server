@@ -47,6 +47,14 @@ async function run() {
         res.send(result)
     })
 
+    //For AllBlogs Page
+
+    app.get("/allBlogs", async(req,res)=>{
+      const cursor=foodBlogsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result)
+    })
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
