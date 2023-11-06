@@ -65,10 +65,22 @@ async function run() {
       const existAlready= await wishListCollection.findOne(wishListBlog);
 
       if(existAlready){
-        return res.send({message:'data already exist'});
+        return res.send({message:'Blog already exist'});
       }
 
       const result= await wishListCollection.insertOne(wishListBlog)
+      res.send(result)
+    })
+
+    app.get("/wishLists", async(req,res)=>{
+      console.log(req.query)
+      let query={};
+      
+      if(req.query?.email){
+        query= {userEmail: req.query.email}
+      }
+      const cursor=  wishListCollection.find(query);
+      const result = await cursor.toArray();
       res.send(result)
     })
 
