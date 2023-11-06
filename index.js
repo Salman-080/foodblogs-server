@@ -32,6 +32,7 @@ async function run() {
   try {
 
     const foodBlogsCollection=client.db("FoodBlogsDB").collection("FoodBlogsCollection");
+    const wishListCollection=client.db("FoodBlogsDB").collection("WishListCollection");
 
     app.post("/Blogs", async(req,res)=>{
         const blogDatas= req.body;
@@ -52,6 +53,22 @@ async function run() {
     app.get("/allBlogs", async(req,res)=>{
       const cursor=foodBlogsCollection.find();
       const result = await cursor.toArray();
+      res.send(result)
+    })
+
+    //wishList
+
+    app.post("/wishLists",async(req,res)=>{
+      const wishListBlog=req.body;
+      console.log(wishListBlog)
+
+      const existAlready= await wishListCollection.findOne(wishListBlog);
+
+      if(existAlready){
+        return res.send({message:'data already exist'});
+      }
+
+      const result= await wishListCollection.insertOne(wishListBlog)
       res.send(result)
     })
 
