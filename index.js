@@ -33,6 +33,7 @@ async function run() {
 
     const foodBlogsCollection=client.db("FoodBlogsDB").collection("FoodBlogsCollection");
     const wishListCollection=client.db("FoodBlogsDB").collection("WishListCollection");
+    const commentsCollection=client.db("FoodBlogsDB").collection("CommentsCollection");
 
     app.post("/Blogs", async(req,res)=>{
         const blogDatas= req.body;
@@ -105,6 +106,26 @@ async function run() {
       res.send(result);
     })
 
+
+    //CcommentsInfo
+
+    app.post("/commentsInfo",async(req,res)=>{
+      const commentsInfo=req.body;
+      console.log(commentsInfo)
+      const result=await commentsCollection.insertOne(commentsInfo);
+      res.send(result)
+    })
+
+    app.get("/commentsInfo/:id",async(req,res)=>{
+      const id= req.params.id;
+      console.log(id);
+
+      const query={blog_id: id};
+
+      const cursor= commentsCollection.find(query);
+      const result= await cursor.toArray();
+      res.send(result);
+    })
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
