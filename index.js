@@ -94,6 +94,17 @@ async function run() {
       res.send(result);
     })
 
+    //updateblogs
+
+    app.get("/update/:id", async(req,res)=>{
+      const id=req.params.id;
+      console.log(id);
+
+      const query={_id: new ObjectId(id)};
+      const result= await foodBlogsCollection.findOne(query);
+      res.send(result);
+    })
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
