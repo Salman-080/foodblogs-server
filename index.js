@@ -5,7 +5,7 @@ const cors=require('cors');
 app.use(cors());
 app.use(express.json());
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.get('/',(req,res)=>{
     res.send("Food Blog Server");
 })
@@ -82,6 +82,16 @@ async function run() {
       const cursor=  wishListCollection.find(query);
       const result = await cursor.toArray();
       res.send(result)
+    })
+
+    //BlogDetails
+
+    app.get("/details/:id", async(req,res)=>{
+      const id= req.params.id;
+      console.log(id);
+      const query= {_id: new ObjectId(id)};
+      const result= await foodBlogsCollection.findOne(query);
+      res.send(result);
     })
 
     // Connect the client to the server	(optional starting in v4.7)
