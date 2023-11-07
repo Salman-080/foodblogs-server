@@ -126,6 +126,20 @@ async function run() {
       const result= await cursor.toArray();
       res.send(result);
     })
+
+    //Top 10 FeaturedBlogs
+
+    app.get("/featuredBlogsPosts",async(req,res)=>{
+      const cursor= await foodBlogsCollection.find().toArray();
+      cursor.sort((x,y)=>{
+        const first= x.longDescription.length;
+        const second= y.longDescription.length;
+        return second-first;
+      })
+
+      const result= cursor.slice(0,10);
+      res.send(result)
+    })
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
