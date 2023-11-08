@@ -6,7 +6,9 @@ const jwt=require('jsonwebtoken');
 const cookieParser=require('cookie-parser');
 app.use(cors({
   origin: [
-    'http://localhost:5173'
+    // 'http://localhost:5173'
+    'https://food-blogs-auth.web.app',
+    'https://food-blogs-auth.firebaseapp.com'
   ],
   credentials: true,
 }));
