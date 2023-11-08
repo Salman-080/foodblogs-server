@@ -2,8 +2,16 @@ const express=require('express');
 const port =process.env.PORT || 5000;
 const app= express();
 const cors=require('cors');
-app.use(cors());
+const jwt=require('jsonwebtoken');
+const cookieParser=require('cookie-parser');
+app.use(cors({
+  origin: [
+    'http://localhost:5173'
+  ],
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 app.get('/',(req,res)=>{
@@ -27,6 +35,19 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+
+
+const logger=(req,res,next)=>{
+  console.log(req.method, req.url)
+  next();
+
+}
+
+const verifyToken=(req,res,next)=>{
+  const token=req?.cookies?.accessToken;
+  console.log("hello token",token);
+  next();
+}
 
 async function run() {
   try {
@@ -59,9 +80,10 @@ async function run() {
 
     //wishList
 
-    app.post("/wishLists",async(req,res)=>{
+    app.post("/wishLists", async(req,res)=>{
       const wishListBlog=req.body;
-      console.log(wishListBlog)
+      console.log(wishListBlog);
+
 
       const existAlready= await wishListCollection.findOne(wishListBlog);
 
@@ -73,8 +95,9 @@ async function run() {
       res.send(result)
     })
 
-    app.get("/wishLists", async(req,res)=>{
-      console.log(req.query)
+    app.get("/wishLists",logger, verifyToken, async(req,res)=>{
+      // console.log(req.query);
+      // console.log(req.cookies);
       let query={};
       
       if(req.query?.email){
@@ -171,6 +194,35 @@ async function run() {
       const query={_id: new ObjectId(id)};
       const result= await wishListCollection.deleteOne(query);
       res.send(result);
+    })
+
+
+    ///JWT
+
+    app.post("/jwt",logger, async(req,res)=>{
+      const userMail= req.body;
+      console.log(userMail);
+
+      const token= jwt.sign(userMail, process.env.ACCESS_SECRET_TOKEN, {expiresIn: "1hr"});
+      res.cookie('accessToken', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      }).send({success: true})
+
+    //   res.cookie('token', token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production', 
+    //     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        
+    // })
+    })
+
+    app.post("/signOut",async(req,res)=>{
+      const userMail= req.body;
+      console.log(userMail);
+      res.clearCookie('accessToken', {maxAge: 0})
+      .send({success: true})
     })
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
