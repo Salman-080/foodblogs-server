@@ -106,6 +106,27 @@ async function run() {
       res.send(result);
     })
 
+    app.put("/updateBlogs/:id",async(req,res)=>{
+     
+      const updatingData=req.body;
+      const id=req.params.id;
+      console.log(id);
+      console.log(updatingData);
+      
+      const query={_id: new ObjectId(id)};
+      const update={
+        $set:{
+          title: updatingData.title,
+          category: updatingData.category,
+          image: updatingData.image,
+          shortDescription: updatingData.shortDescription,
+          longDescription: updatingData.longDescription
+        }
+      }
+      const result= await foodBlogsCollection.updateOne(query, update);
+      res.send(result);
+    })
+
 
     //CcommentsInfo
 
