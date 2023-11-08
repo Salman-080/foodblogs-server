@@ -44,7 +44,7 @@ async function run() {
     })
 
     app.get("/Blogs",async(req,res)=>{
-        const cursor=foodBlogsCollection.find().sort({dateTime: -1}).limit(3);
+        const cursor=foodBlogsCollection.find().sort({dateTime: -1}).limit(6);
         const result= await cursor.toArray();
         res.send(result)
     })
@@ -66,7 +66,7 @@ async function run() {
       const existAlready= await wishListCollection.findOne(wishListBlog);
 
       if(existAlready){
-        return res.send({message:'Blog already exist'});
+        return res.send({message:'Blog already exist into your WhistList'});
       }
 
       const result= await wishListCollection.insertOne(wishListBlog)
@@ -160,6 +160,17 @@ async function run() {
 
       const result= cursor.slice(0,10);
       res.send(result)
+    })
+
+    //delete
+
+    app.post("/delete/:id",async(req,res)=>{
+      const id=req.params.id;
+      console.log(id);
+
+      const query={_id: new ObjectId(id)};
+      const result= await wishListCollection.deleteOne(query);
+      res.send(result);
     })
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
