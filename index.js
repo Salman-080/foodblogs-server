@@ -6,9 +6,10 @@ const jwt=require('jsonwebtoken');
 const cookieParser=require('cookie-parser');
 app.use(cors({
   origin: [
-    // 'http://localhost:5173'
-    'https://food-blogs-auth.web.app',
-    'https://food-blogs-auth.firebaseapp.com'
+    'http://localhost:5174',
+    // 'http://localhost:5173',
+    // 'https://food-blogs-auth.web.app',
+    // 'https://food-blogs-auth.firebaseapp.com'
   ],
   credentials: true,
 }));
@@ -48,7 +49,20 @@ const logger=(req,res,next)=>{
 const verifyToken=(req,res,next)=>{
   const token=req?.cookies?.accessToken;
   console.log("hello token",token);
-  next();
+
+  if(!token){
+    return res.status(401).send({message: "Token nai"});
+  }
+  jwt.verify(token, process.env.ACCESS_SECRET_TOKEN,(err, decoded)=>{
+    if(err){
+      return res.status(401).send({message: "unauthorized access"});
+    }
+
+    req.user=decoded;
+
+    next();
+  })
+  
 }
 
 async function run() {
@@ -58,11 +72,18 @@ async function run() {
     const wishListCollection=client.db("FoodBlogsDB").collection("WishListCollection");
     const commentsCollection=client.db("FoodBlogsDB").collection("CommentsCollection");
 
-    app.post("/Blogs", async(req,res)=>{
+    app.post("/Blogs",logger, verifyToken, async(req,res)=>{
         const blogDatas= req.body;
-        // console.log(blogDatas)
-    
+        
+        const email= req.body.userEmail;
+        console.log(email);
+
+        if(req.user.email!==email){
+          return res.status(403).send({message: "forbidden access"});
+        }
+
         const result=await foodBlogsCollection.insertOne(blogDatas)
+        console.log(blogDatas)
         res.send(result)
     })
 
@@ -98,8 +119,12 @@ async function run() {
     })
 
     app.get("/wishLists",logger, verifyToken, async(req,res)=>{
-      // console.log(req.query);
+      console.log(req.query);
       // console.log(req.cookies);
+      if(req.user.email !== req.query.email){
+        return res.status(403).send({message: "forbidden access"});
+      }
+      console.log("owner token info", req.user)
       let query={};
       
       if(req.query?.email){
@@ -115,6 +140,7 @@ async function run() {
     app.get("/details/:id", async(req,res)=>{
       const id= req.params.id;
       console.log(id);
+      
       const query= {_id: new ObjectId(id)};
       const result= await foodBlogsCollection.findOne(query);
       res.send(result);
@@ -131,12 +157,16 @@ async function run() {
       res.send(result);
     })
 
-    app.put("/updateBlogs/:id",async(req,res)=>{
+    app.put("/updateBlogs/:id",logger, verifyToken, async(req,res)=>{
      
       const updatingData=req.body;
       const id=req.params.id;
       console.log(id);
       console.log(updatingData);
+
+      if(req.user.email !== req.body.userEmail){
+        return res.status(403).send({message: "forbidden access"});
+      }
       
       const query={_id: new ObjectId(id)};
       const update={
@@ -205,7 +235,7 @@ async function run() {
       const userMail= req.body;
       console.log(userMail);
 
-      const token= jwt.sign(userMail, process.env.ACCESS_SECRET_TOKEN, {expiresIn: "1hr"});
+      const token= jwt.sign(userMail, process.env.ACCESS_SECRET_TOKEN, {expiresIn: "1h"});
       res.cookie('accessToken', token, {
         httpOnly: true,
         secure: true,
