@@ -6,10 +6,10 @@ const jwt=require('jsonwebtoken');
 const cookieParser=require('cookie-parser');
 app.use(cors({
   origin: [
-    'http://localhost:5174',
+    // 'http://localhost:5174',
     // 'http://localhost:5173',
-    // 'https://food-blogs-auth.web.app',
-    // 'https://food-blogs-auth.firebaseapp.com'
+    'https://food-blogs-auth.web.app',
+    'https://food-blogs-auth.firebaseapp.com'
   ],
   credentials: true,
 }));
@@ -238,8 +238,8 @@ async function run() {
       const token= jwt.sign(userMail, process.env.ACCESS_SECRET_TOKEN, {expiresIn: "1h"});
       res.cookie('accessToken', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none'
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
       }).send({success: true})
 
     //   res.cookie('token', token, {
@@ -253,7 +253,9 @@ async function run() {
     app.post("/signOut",async(req,res)=>{
       const userMail= req.body;
       console.log(userMail);
-      res.clearCookie('accessToken', {maxAge: 0})
+      res.clearCookie('accessToken', {maxAge: 0, httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'})
       .send({success: true})
     })
     // Connect the client to the server	(optional starting in v4.7)
